@@ -1,28 +1,29 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class PlayerStats : MonoBehaviour
 {
-    
-
-
-
     [SerializeField] private int _logCounts = 0;
     private TextMeshProUGUI _logCountText;
 
+    [Header("camera")]
     [SerializeField] private CamScript _camScript;
     [SerializeField] private float _interactionDistance = 3f;
     [SerializeField] private LayerMask _interactionLayerMask;
 
-    private Log _log;
-    private CampFire _campFire;
-    //UI
-
+    [Header("Hold")]
+    [SerializeField] private Image _progressBar;
+    [SerializeField] private float _holdDuration = 2f;
+    private bool _isHolding = false;
+    private float _currentHoldTime = 0f;
+    private CampFire _targetCampFire;
 
     private void Awake()
     {
-        if(_camScript == null)
+        if (_camScript == null)
         {
             _camScript = GetComponentInChildren<CamScript>();
         }
@@ -38,8 +39,7 @@ public class PlayerStats : MonoBehaviour
                 Debug.LogWarning("logCountTextNone");
             }
         }
-      
-       
+        ResetProgressBar();
     }
 
     private void Start()
@@ -47,6 +47,10 @@ public class PlayerStats : MonoBehaviour
         UpdateUI();
     }
 
+    private void Update()
+    {
+        HandleHoldInteraction();
+    }
 
     public void addLogs(int amount)
     {
@@ -67,7 +71,13 @@ public class PlayerStats : MonoBehaviour
 
     public void OnTakeItem(InputValue val)
     {
-        if (!val.isPressed) return;
+        if (!val.isPressed)
+        {
+            CancelHold();
+            return;
+        }
+
+        if (_camScript == null) return;
 
         Ray ray = _camScript.GetCenterRay();
 
@@ -81,13 +91,16 @@ public class PlayerStats : MonoBehaviour
 
             if (hit.collider.TryGetComponent(out CampFire campFire) && _logCounts > 0)
             {
-                if (TryUseLog())
-                {
-                    campFire.AddFireTime();
-                }
+                _targetCampFire = campFire;
+                _isHolding = true;
+                _currentHoldTime = 0f;
+
+                if (_progressBar != null)
+                    _progressBar.gameObject.SetActive(true);
             }
         }
     }
+
     private void UpdateUI()
     {
         if (_logCountText != null)
@@ -96,8 +109,41 @@ public class PlayerStats : MonoBehaviour
         }
     }
 
+    private void HandleHoldInteraction()
+    {
+        if (!_isHolding || _targetCampFire == null) return;
 
+        _currentHoldTime += Time.deltaTime;
 
-    public void SetCurrentLog(Log log) { _log = log; }
-    public void SetCurrentCampFire(CampFire camp) { _campFire = camp; }
+        if (_progressBar != null)
+        {
+            _progressBar.fillAmount = _currentHoldTime / _holdDuration;
+        }
+
+        if (_currentHoldTime >= _holdDuration)
+        {
+            if (TryUseLog())
+            {
+                _targetCampFire.AddFireTime();
+            }
+            CancelHold();
+        }
+    }
+
+    private void CancelHold()
+    {
+        _isHolding = false;
+        _currentHoldTime = 0f;
+        _targetCampFire = null;
+        ResetProgressBar();
+    }
+
+    private void ResetProgressBar()
+    {
+        if (_progressBar != null)
+        {
+            _progressBar.fillAmount = 0f;
+            _progressBar.gameObject.SetActive(false);
+        }
+    }
 }

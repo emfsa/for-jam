@@ -22,9 +22,9 @@ public class CamScript : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
-   
+
     public Ray GetCenterRay()
     {
-        return new Ray(transform.position, transform.forward);
+        return Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
     }
 }

@@ -91,7 +91,7 @@ public class CampFire : MonoBehaviour
         }
     }*/
 
-    private void OnTriggerEnter(Collider other)
+   /* private void OnTriggerEnter(Collider other)
     {
         if(other.TryGetComponent(out PlayerStats player))
         {
@@ -104,5 +104,5 @@ public class CampFire : MonoBehaviour
         {
             player.SetCurrentCampFire(null);
         }
-    }
+    }*/
 }
