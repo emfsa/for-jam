@@ -13,11 +13,12 @@ public class CampFire : MonoBehaviour
         if(_fireTimeText == null)
         {
             _fireTimeText = GameObject.Find("FireTimeText").GetComponent<TextMeshProUGUI>();
+            if(_fireTimeText == null)
+            {
+                Debug.LogWarning("FireTimeTextNone");
+            }
         }
-        else
-        {
-            Debug.Log("fireTimeTextNone");
-        }
+        
     }
     private void Start()
     {
@@ -50,8 +51,7 @@ public class CampFire : MonoBehaviour
     private void StartFireTime()
     {
         if (!_isBurning)
-        {
-            loose();
+        { 
             return;
         }
         if (_fireTime > 0)
@@ -61,6 +61,8 @@ public class CampFire : MonoBehaviour
         }
         else
         {
+            _fireTime = 0;
+            UpdateFireTimeText();
             _isBurning = false;
             loose();
         }
@@ -72,5 +74,35 @@ public class CampFire : MonoBehaviour
     {
         Debug.Log("You lost!");
         //TODO: добавить проигрыш (мб спавн большого количества врагов итд)
+    }
+
+
+   /* private void OnCollisionEnter(Collision collision)
+    {
+        if (_isBurning)
+        {
+            switch(collision.gameObject.tag)
+            {
+                case "Enemy":
+                    RemoveTime(10f);
+                    Destroy(collision.gameObject);
+                    break;
+            }
+        }
+    }*/
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.TryGetComponent(out PlayerStats player))
+        {
+            player.SetCurrentCampFire(this);
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.TryGetComponent(out PlayerStats player))
+        {
+            player.SetCurrentCampFire(null);
+        }
     }
 }
