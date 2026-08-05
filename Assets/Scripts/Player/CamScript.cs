@@ -5,9 +5,10 @@ public class CamScript : MonoBehaviour
 {
     [SerializeField] private CinemachineCamera _cam;
 
-    void Start()
+    void Awake()
     {
-        _cam = GetComponent<CinemachineCamera>();
+        if(_cam == null) { _cam = GetComponent<CinemachineCamera>(); }
+        
         LockCursor();
     }
 
@@ -22,4 +23,8 @@ public class CamScript : MonoBehaviour
         Cursor.visible = true;
     }
    
+    public Ray GetCenterRay()
+    {
+        return new Ray(transform.position, transform.forward);
+    }
 }
