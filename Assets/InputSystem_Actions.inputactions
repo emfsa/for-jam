@@ -95,6 +95,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Hold",
+                    "type": "Value",
+                    "id": "d9dc74d7-89a8-41cb-82d7-69b77bc454dc",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -491,6 +500,17 @@
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
                     "action": "Take Item",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7156d861-9da0-4308-a24e-8fbfa7c3656e",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hold",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -73,11 +73,10 @@ public class PlayerStats : MonoBehaviour
     {
         if (!val.isPressed)
         {
-            CancelHold();
             return;
         }
 
-        if (_camScript == null) return;
+      
 
         Ray ray = _camScript.GetCenterRay();
 
@@ -89,6 +88,36 @@ public class PlayerStats : MonoBehaviour
                 return;
             }
 
+            /*if (hit.collider.TryGetComponent(out CampFire campFire) && _logCounts > 0)
+            {
+                _targetCampFire = campFire;
+                _isHolding = true;
+                _currentHoldTime = 0f;
+
+                if (_progressBar != null)
+                    _progressBar.gameObject.SetActive(true);
+            }*/
+        }
+    }
+    public void OnHold(InputValue val)
+    {
+        if (!val.isPressed)
+        {
+            CancelHold();
+            return;
+        }
+
+        if (_camScript == null) return;
+        Ray ray = _camScript.GetCenterRay();
+
+        if (Physics.Raycast(ray, out RaycastHit hit, _interactionDistance, _interactionLayerMask))
+        {
+            /*if (hit.collider.TryGetComponent(out Log log))
+            {
+                log.pickUP(this);
+                return;
+            }*/
+
             if (hit.collider.TryGetComponent(out CampFire campFire) && _logCounts > 0)
             {
                 _targetCampFire = campFire;
@@ -99,8 +128,7 @@ public class PlayerStats : MonoBehaviour
                     _progressBar.gameObject.SetActive(true);
             }
         }
-    }
-
+    }    
     private void UpdateUI()
     {
         if (_logCountText != null)
