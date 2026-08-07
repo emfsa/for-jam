@@ -39,12 +39,17 @@ public class CampFire : MonoBehaviour
     public void RemoveTime(float _enemy)
     {
         _fireTime -= _enemy;
+        
         UpdateFireTimeText();
     }
     //--------
 
     public void UpdateFireTimeText()
     {
+        if (_fireTime < 0)
+        {
+            _fireTime = 0;
+        }
         _fireTimeText.text = _fireTime.ToString("F0");
     }
     //--------логика таймера костра
@@ -77,32 +82,5 @@ public class CampFire : MonoBehaviour
     }
 
 
-   /* private void OnCollisionEnter(Collision collision)
-    {
-        if (_isBurning)
-        {
-            switch(collision.gameObject.tag)
-            {
-                case "Enemy":
-                    RemoveTime(10f);
-                    Destroy(collision.gameObject);
-                    break;
-            }
-        }
-    }*/
-
-   /* private void OnTriggerEnter(Collider other)
-    {
-        if(other.TryGetComponent(out PlayerStats player))
-        {
-            player.SetCurrentCampFire(this);
-        }
-    }
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.TryGetComponent(out PlayerStats player))
-        {
-            player.SetCurrentCampFire(null);
-        }
-    }*/
+   
 }

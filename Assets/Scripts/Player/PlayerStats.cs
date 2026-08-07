@@ -17,6 +17,11 @@ public class PlayerStats : MonoBehaviour
     [Header("Hold")]
     [SerializeField] private Image _progressBar;
     [SerializeField] private float _holdDuration = 2f;
+
+    [Header("Attack")]
+    [SerializeField] private float _attackDamage = 10f;
+    [SerializeField] private float _attackDistance = 3f;
+
     private bool _isHolding = false;
     private float _currentHoldTime = 0f;
     private CampFire _targetCampFire;
@@ -69,6 +74,28 @@ public class PlayerStats : MonoBehaviour
         return false;
     }
 
+    public void OnAttack(InputValue val)
+    {
+        if(!val.isPressed)
+        {
+            return;
+        }
+        if(_camScript == null) return;
+        Debug.Log("attack");
+        Ray ray = _camScript.GetCenterRay();
+
+        if(Physics.Raycast(ray, out RaycastHit hit, _attackDistance, _interactionLayerMask))
+        {
+            Debug.Log("attack2");
+
+            if (hit.collider.TryGetComponent(out Enemy enemy))
+            {
+                Debug.Log("attack3");
+
+                enemy.TakeDamage(_attackDamage);
+            }
+        }
+    }
     public void OnTakeItem(InputValue val)
     {
         if (!val.isPressed)
@@ -88,15 +115,7 @@ public class PlayerStats : MonoBehaviour
                 return;
             }
 
-            /*if (hit.collider.TryGetComponent(out CampFire campFire) && _logCounts > 0)
-            {
-                _targetCampFire = campFire;
-                _isHolding = true;
-                _currentHoldTime = 0f;
-
-                if (_progressBar != null)
-                    _progressBar.gameObject.SetActive(true);
-            }*/
+            
         }
     }
     public void OnHold(InputValue val)
@@ -112,11 +131,7 @@ public class PlayerStats : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit, _interactionDistance, _interactionLayerMask))
         {
-            /*if (hit.collider.TryGetComponent(out Log log))
-            {
-                log.pickUP(this);
-                return;
-            }*/
+            
 
             if (hit.collider.TryGetComponent(out CampFire campFire) && _logCounts > 0)
             {
