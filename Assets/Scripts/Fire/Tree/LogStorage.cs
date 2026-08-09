@@ -24,7 +24,7 @@ public class LogStorage : MonoBehaviour
     public void UpgradeStorage(int extraCapacity)
     {
         _maxCapacity += extraCapacity;
-        UpdateVisuals(); // Пересчитываем % с новым лимитом
+        UpdateVisuals();
         Debug.Log($"Склад улучшен! Новая вместимость: {_maxCapacity}");
     }
 
@@ -48,18 +48,20 @@ public class LogStorage : MonoBehaviour
 
     private void UpdateVisuals()
     {
-        if (_storedLogsCount == 0 || _visualStages.Count == 0)
+        if (_storedLogsCount == 0 || _visualStages == null || _visualStages.Count == 0)
         {
-            foreach (var stage in _visualStages)
+            if (_visualStages != null)
             {
-                if (stage != null) stage.SetActive(false);
+                foreach (var stage in _visualStages)
+                {
+                    if (stage != null) stage.SetActive(false);
+                }
             }
             return;
         }
 
         float fillPercent = (float)_storedLogsCount / _maxCapacity;
 
-        
         int targetIndex = Mathf.Clamp(
             Mathf.FloorToInt(fillPercent * _visualStages.Count),
             0,

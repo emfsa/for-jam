@@ -9,7 +9,7 @@ public class PlayerStats : MonoBehaviour
     [Header("Logs")]
     [SerializeField] private int _logCounts = 0;
     [SerializeField] private int _maxLogCounts = 5;
-    private TextMeshProUGUI _logCountText;
+    [SerializeField] private TextMeshProUGUI _logCountText;
 
     public bool IsMaxLogs => _logCounts >= _maxLogCounts;
 
@@ -26,6 +26,10 @@ public class PlayerStats : MonoBehaviour
     [SerializeField] private float _attackDamage = 10f;
     [SerializeField] private float _attackDistance = 3f;
 
+    [Header("Money")]
+    [SerializeField] private int _money = 0;
+    [SerializeField] private TextMeshProUGUI _moneyCountText;
+
     private bool _isHolding = false;
     private float _currentHoldTime = 0f;
     private CampFire _targetCampFire;
@@ -38,17 +42,18 @@ public class PlayerStats : MonoBehaviour
             _camScript = GetComponentInChildren<CamScript>();
         }
 
+        if (_moneyCountText == null)
+        {
+            GameObject moneyObj = GameObject.Find("MoneyCountText");
+            if (moneyObj != null) _moneyCountText = moneyObj.GetComponent<TextMeshProUGUI>();
+            else Debug.LogWarning("PlayerStats: MoneyCountText не найден!");
+        }
+
         if (_logCountText == null)
         {
-            GameObject textObj = GameObject.Find("LogCountText");
-            if (textObj != null)
-            {
-                _logCountText = textObj.GetComponent<TextMeshProUGUI>();
-            }
-            else
-            {
-                Debug.LogWarning("PlayerStats: LogCountText не найден!");
-            }
+            GameObject logObj = GameObject.Find("LogCountText");
+            if (logObj != null) _logCountText = logObj.GetComponent<TextMeshProUGUI>();
+            else Debug.LogWarning("PlayerStats: LogCountText не найден!");
         }
 
         ResetProgressBar();
@@ -58,7 +63,22 @@ public class PlayerStats : MonoBehaviour
 
     private void Update() => HandleHoldInteraction();
 
-    public void addLogs(int amount)
+    public void AddMoney(int amount)
+    {
+        _money += amount;
+        UpdateUI();
+    }
+
+    public bool TrySpendMoney(int amount)
+    {
+        if (_money < amount || amount <= 0) return false;
+
+        _money -= amount;
+        UpdateUI();
+        return true;
+    }
+
+    public void AddLogs(int amount)
     {
         _logCounts += amount;
 
@@ -102,7 +122,6 @@ public class PlayerStats : MonoBehaviour
         }
     }
 
-    // Клик E: Только забор бревен (с земли или со склада)
     public void OnTakeItem(InputValue val)
     {
         if (!val.isPressed || _camScript == null) return;
@@ -117,18 +136,16 @@ public class PlayerStats : MonoBehaviour
                     log.pickUP(this);
                     break;
 
-                // Забираем бревно со склада, только если не зажата выгрузка
                 case var c when c.TryGetComponent(out LogStorage logStorage) && !IsMaxLogs && !_isHolding:
                     if (logStorage.TryRemoveLog())
                     {
-                        addLogs(1);
+                        AddLogs(1);
                     }
                     break;
             }
         }
     }
 
-    // Зажатие E: Пополнение костра или полная выгрузка бревен на склад
     public void OnHold(InputValue val)
     {
         if (!val.isPressed)
@@ -184,12 +201,10 @@ public class PlayerStats : MonoBehaviour
 
         if (_currentHoldTime >= _holdDuration)
         {
-            // На костер отдаем 1 бревно за одно удержание
             if (_targetCampFire != null && TryUseLog())
             {
                 _targetCampFire.AddFireTime();
             }
-            // На склад отдаем ВСЕ бревна сразу (сколько влезет)
             else if (_targetLogStorage != null)
             {
                 while (_logCounts > 0 && !_targetLogStorage.IsFull)
@@ -243,5 +258,23 @@ public class PlayerStats : MonoBehaviour
         {
             _logCountText.text = $"{_logCounts} / {_maxLogCounts}";
         }
+        if (_moneyCountText != null)
+        {
+            _moneyCountText.text = _money.ToString();
+        }
     }
+
+    public void UpgradeDamage(float damage)
+    {
+        _attackDamage += damage;
+    }
+
+    public void UpgradeMaxLogCounts(int addedMaxLogCount)
+    {
+        _maxLogCounts += addedMaxLogCount;
+        UpdateUI();
+    }
+
+    public float GetAttackDamage() => _attackDamage;
+    public int GetMaxLogCount() => _maxLogCounts;
 }
