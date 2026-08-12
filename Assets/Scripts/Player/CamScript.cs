@@ -9,22 +9,34 @@ public class CamScript : MonoBehaviour
     {
         if(_cam == null) { _cam = GetComponent<CinemachineCamera>(); }
         
-        LockCursor();
+        LockCursor(true);
     }
 
-    public void LockCursor()
+    /*public void LockCursor()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+       
     }
 
     public void UnlockCursor() {
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+    }*/
+
+    public void LockCursor(bool locked)
+    {
+        if(locked)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
     }
-   
     public Ray GetCenterRay()
     {
-        return new Ray(transform.position, transform.forward);
+        return Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
     }
 }

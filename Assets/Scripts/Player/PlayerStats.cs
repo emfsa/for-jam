@@ -1,56 +1,79 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class PlayerStats : MonoBehaviour
 {
-    
-
-
-
+    [Header("Logs")]
     [SerializeField] private int _logCounts = 0;
-    private TextMeshProUGUI _logCountText;
+    [SerializeField] private int _maxLogCounts = 5;
+    [SerializeField] private TextMeshProUGUI _logCountText;
 
+    public bool IsMaxLogs => _logCounts >= _maxLogCounts;
+
+    [Header("Camera")]
     [SerializeField] private CamScript _camScript;
     [SerializeField] private float _interactionDistance = 3f;
     [SerializeField] private LayerMask _interactionLayerMask;
 
-    private Log _log;
-    private CampFire _campFire;
-    //UI
+    [Header("Hold")]
+    [SerializeField] private Image _progressBar;
+    [SerializeField] private float _holdDuration = 2f;
 
+    [Header("Attack")]
+    [SerializeField] private float _attackDamage = 10f;
+    [SerializeField] private float _attackDistance = 3f;
+
+    [Header("Money")]
+    [SerializeField] private int _money = 0;
+    [SerializeField] private TextMeshProUGUI _moneyCountText;
+
+    private bool _isHolding = false;
+    private float _currentHoldTime = 0f;
+    private CampFire _targetCampFire;
+    private LogStorage _targetLogStorage;
 
     private void Awake()
     {
-        if(_camScript == null)
+        if (_camScript == null)
         {
             _camScript = GetComponentInChildren<CamScript>();
         }
+
+        if (_moneyCountText == null)
+        {
+            GameObject moneyObj = GameObject.Find("MoneyCountText");
+            if (moneyObj != null) _moneyCountText = moneyObj.GetComponent<TextMeshProUGUI>();
+            else Debug.LogWarning("PlayerStats: MoneyCountText не найден!");
+        }
+
         if (_logCountText == null)
         {
-            GameObject textObj = GameObject.Find("LogCountText");
-            if (textObj != null)
-            {
-                _logCountText = textObj.GetComponent<TextMeshProUGUI>();
-            }
-            else
-            {
-                Debug.LogWarning("logCountTextNone");
-            }
+            GameObject logObj = GameObject.Find("LogCountText");
+            if (logObj != null) _logCountText = logObj.GetComponent<TextMeshProUGUI>();
+            else Debug.LogWarning("PlayerStats: LogCountText не найден!");
         }
-      
-       
+
+        ResetProgressBar();
     }
 
-    private void Start()
-    {
-        UpdateUI();
-    }
+    private void Start() => UpdateUI();
 
+    private void Update() => HandleHoldInteraction();
 
-    public void addLogs(int amount)
+   
+
+    public void AddLogs(int amount)
     {
         _logCounts += amount;
+
+        if (IsMaxLogs)
+        {
+            _logCounts = _maxLogCounts;
+        }
+
         UpdateUI();
     }
 
@@ -65,39 +88,201 @@ public class PlayerStats : MonoBehaviour
         return false;
     }
 
+    public void OnAttack(InputValue val)
+    {
+        if (!val.isPressed || _camScript == null) return;
+
+        Ray ray = _camScript.GetCenterRay();
+
+        if (Physics.Raycast(ray, out RaycastHit hit, _attackDistance, _interactionLayerMask))
+        {
+            switch (hit.collider)
+            {
+                case var c when c.TryGetComponent(out Enemy enemy):
+                    enemy.TakeDamage(_attackDamage,this);
+                    break;
+
+                case var c when c.TryGetComponent(out TreeLogic tree):
+                    tree.TakeDamage(_attackDamage);
+                    break;
+            }
+        }
+    }
+
     public void OnTakeItem(InputValue val)
     {
-        if (!val.isPressed) return;
+        if (!val.isPressed || _camScript == null) return;
 
         Ray ray = _camScript.GetCenterRay();
 
         if (Physics.Raycast(ray, out RaycastHit hit, _interactionDistance, _interactionLayerMask))
         {
-            if (hit.collider.TryGetComponent(out Log log))
+            switch (hit.collider)
             {
-                log.pickUP(this);
-                return;
-            }
+                case var c when c.TryGetComponent(out Log log) && !IsMaxLogs:
+                    log.pickUP(this);
+                    break;
 
-            if (hit.collider.TryGetComponent(out CampFire campFire) && _logCounts > 0)
-            {
-                if (TryUseLog())
-                {
-                    campFire.AddFireTime();
-                }
+                case var c when c.TryGetComponent(out LogStorage logStorage) && !IsMaxLogs && !_isHolding:
+                    if (logStorage.TryRemoveLog())
+                    {
+                        AddLogs(1);
+                    }
+                    break;
             }
         }
     }
+
+    public void OnHold(InputValue val)
+    {
+        if (!val.isPressed)
+        {
+            CancelHold();
+            return;
+        }
+
+        if (_camScript == null) return;
+
+        Ray ray = _camScript.GetCenterRay();
+
+        if (Physics.Raycast(ray, out RaycastHit hit, _interactionDistance, _interactionLayerMask))
+        {
+            switch (hit.collider)
+            {
+                case var c when c.TryGetComponent(out CampFire campFire) && _logCounts > 0:
+                    _targetCampFire = campFire;
+                    StartHolding();
+                    break;
+
+                case var c when c.TryGetComponent(out LogStorage logStorage) && _logCounts > 0 && !logStorage.IsFull:
+                    _targetLogStorage = logStorage;
+                    StartHolding();
+                    break;
+
+                default:
+                    CancelHold();
+                    break;
+            }
+        }
+    }
+
+    private void HandleHoldInteraction()
+    {
+        if (!_isHolding) return;
+
+        Ray ray = _camScript.GetCenterRay();
+        bool isLookingAtTarget = Physics.Raycast(ray, out RaycastHit hit, _interactionDistance, _interactionLayerMask) &&
+            ((_targetCampFire != null && hit.collider.GetComponent<CampFire>() == _targetCampFire) ||
+             (_targetLogStorage != null && hit.collider.GetComponent<LogStorage>() == _targetLogStorage));
+
+        if (!isLookingAtTarget)
+        {
+            CancelHold();
+            return;
+        }
+
+        _currentHoldTime += Time.deltaTime;
+
+        if (_progressBar != null)
+            _progressBar.fillAmount = _currentHoldTime / _holdDuration;
+
+        if (_currentHoldTime >= _holdDuration)
+        {
+            if (_targetCampFire != null && TryUseLog())
+            {
+                _targetCampFire.AddFireTime();
+            }
+            else if (_targetLogStorage != null)
+            {
+                while (_logCounts > 0 && !_targetLogStorage.IsFull)
+                {
+                    if (_targetLogStorage.TryAddLog())
+                    {
+                        _logCounts--;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                UpdateUI();
+            }
+
+            CancelHold();
+        }
+    }
+
+    private void StartHolding()
+    {
+        _isHolding = true;
+        _currentHoldTime = 0f;
+
+        if (_progressBar != null)
+            _progressBar.gameObject.SetActive(true);
+    }
+
+    private void CancelHold()
+    {
+        _isHolding = false;
+        _currentHoldTime = 0f;
+        _targetCampFire = null;
+        _targetLogStorage = null;
+        ResetProgressBar();
+    }
+
+    private void ResetProgressBar()
+    {
+        if (_progressBar != null)
+        {
+            _progressBar.fillAmount = 0f;
+            _progressBar.gameObject.SetActive(false);
+        }
+    }
+
     private void UpdateUI()
     {
         if (_logCountText != null)
         {
-            _logCountText.text = _logCounts.ToString();
+            _logCountText.text = $"{_logCounts} / {_maxLogCounts}";
+        }
+        if (_moneyCountText != null)
+        {
+            _moneyCountText.text = _money.ToString();
         }
     }
 
+    public void UpgradeDamage(float damage)
+    {
+        _attackDamage += damage;
+    }
 
+    public void UpgradeMaxLogCounts(int addedMaxLogCount)
+    {
+        _maxLogCounts += addedMaxLogCount;
+        UpdateUI();
+    }
 
-    public void SetCurrentLog(Log log) { _log = log; }
-    public void SetCurrentCampFire(CampFire camp) { _campFire = camp; }
+    public float GetAttackDamage() => _attackDamage;
+    public int GetMaxLogCount() => _maxLogCounts;
+
+    public int GetMoney()
+    {
+        return _money;
+    }
+
+    public void AddMoney(int amount)
+    {
+        _money += amount;
+        UpdateUI();
+    }
+
+    public bool TrySpendMoney(int amount)
+    {
+        if (_money < amount || amount <= 0) return false;
+
+        _money -= amount;
+        UpdateUI();
+        return true;
+    }
+
 }

@@ -1,25 +1,29 @@
-using System.Collections;
 using TMPro;
 using UnityEngine;
 
 public class CampFire : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI _fireTimeText;
-    private float _fireTime = 100f; // Бревно + 20 секунд, враг -10 секунд,
+    private float _fireTime = 100f;
     private bool _isBurning = true;
+    private float _logTime = 20f;
 
     private void Awake()
     {
-        if(_fireTimeText == null)
+        if (_fireTimeText == null)
         {
-            _fireTimeText = GameObject.Find("FireTimeText").GetComponent<TextMeshProUGUI>();
-            if(_fireTimeText == null)
+            GameObject textObj = GameObject.Find("FireTimeText");
+            if (textObj != null)
             {
-                Debug.LogWarning("FireTimeTextNone");
+                _fireTimeText = textObj.GetComponent<TextMeshProUGUI>();
+            }
+            else
+            {
+                Debug.LogWarning("CampFire: FireTimeText не найден!");
             }
         }
-        
     }
+
     private void Start()
     {
         UpdateFireTimeText();
@@ -30,30 +34,35 @@ public class CampFire : MonoBehaviour
         StartFireTime();
     }
 
-    //--------работа с костром
     public void AddFireTime()
     {
-        _fireTime += 20f;
+        _fireTime += _logTime;
         UpdateFireTimeText();
     }
-    public void RemoveTime(float _enemy)
+
+    public void RemoveTime(float enemyAmount)
     {
-        _fireTime -= _enemy;
+        _fireTime -= enemyAmount;
         UpdateFireTimeText();
     }
-    //--------
 
     public void UpdateFireTimeText()
     {
-        _fireTimeText.text = _fireTime.ToString("F0");
+        if (_fireTime < 0)
+        {
+            _fireTime = 0;
+        }
+
+        if (_fireTimeText != null)
+        {
+            _fireTimeText.text = _fireTime.ToString("F0");
+        }
     }
-    //--------логика таймера костра
+
     private void StartFireTime()
     {
-        if (!_isBurning)
-        { 
-            return;
-        }
+        if (!_isBurning) return;
+
         if (_fireTime > 0)
         {
             _fireTime -= Time.deltaTime;
@@ -64,45 +73,17 @@ public class CampFire : MonoBehaviour
             _fireTime = 0;
             UpdateFireTimeText();
             _isBurning = false;
-            loose();
+            Lose();
         }
     }
-    //--------
 
-    //--------проигрыш итд
-    private void loose()
+    private void Lose()
     {
         Debug.Log("You lost!");
-        //TODO: добавить проигрыш (мб спавн большого количества врагов итд)
     }
 
-
-   /* private void OnCollisionEnter(Collision collision)
+    public void UpgradeBaseFireTime()
     {
-        if (_isBurning)
-        {
-            switch(collision.gameObject.tag)
-            {
-                case "Enemy":
-                    RemoveTime(10f);
-                    Destroy(collision.gameObject);
-                    break;
-            }
-        }
-    }*/
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if(other.TryGetComponent(out PlayerStats player))
-        {
-            player.SetCurrentCampFire(this);
-        }
-    }
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.TryGetComponent(out PlayerStats player))
-        {
-            player.SetCurrentCampFire(null);
-        }
+        _logTime += 2f;
     }
 }

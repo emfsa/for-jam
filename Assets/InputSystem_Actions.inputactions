@@ -28,7 +28,7 @@
                     "name": "Attack",
                     "type": "Button",
                     "id": "6c2ab1b8-8984-453a-af3d-a3c78ae1679a",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -91,6 +91,24 @@
                     "name": "Take Item",
                     "type": "Button",
                     "id": "ee61dcb8-5781-4e8a-8675-9046af1142cc",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Hold",
+                    "type": "Value",
+                    "id": "d9dc74d7-89a8-41cb-82d7-69b77bc454dc",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Shop",
+                    "type": "Button",
+                    "id": "d7397d3a-b5e3-44f2-a013-f715209aa1e4",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -491,6 +509,28 @@
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
                     "action": "Take Item",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7156d861-9da0-4308-a24e-8fbfa7c3656e",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hold",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "22c819a7-64c2-4cc8-ac8a-92026a7d47ba",
+                    "path": "<Keyboard>/h",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Shop",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

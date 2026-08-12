@@ -25,7 +25,7 @@ public class Log : MonoBehaviour
 
     public void pickUP(PlayerStats playerStats)
     {
-        playerStats.addLogs(_logAmount);
+        playerStats.AddLogs(_logAmount);
         Destroy(gameObject);
     }
 }
