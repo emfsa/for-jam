@@ -9,6 +9,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -8961359253771211100, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: -8961359253771211100, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -69,6 +73,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -5568371526223589888, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: -5568371526223589888, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -77,20 +85,40 @@ PrefabInstance:
       value: tree
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 4767400413853537203, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 4767400413853537203, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 5148817236446094103, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5148817236446094103, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 6507901977716847365, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6507901977716847365, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 8513859187771203891, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8513859187771203891, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -103,6 +131,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1424398955426253522}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4632928789015043774}
   m_SourcePrefab: {fileID: 100100000, guid: 164eff43385f5014699b2c3fb19e5e8d, type: 3}
 --- !u!1 &8535872116069711331 stripped
 GameObject:
@@ -132,3 +163,23 @@ CapsuleCollider:
   m_Height: 16
   m_Direction: 1
   m_Center: {x: 0, y: 7, z: 0}
+--- !u!114 &4632928789015043774
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8535872116069711331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ab935bc77962be40ab1a483be258a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TreeLogic
+  _logCount: 2
+  _treeHealth: 30
+  _logPrefab: {fileID: 8756114960212971372, guid: 43e9705ac0d67634485a31e98590fcf9, type: 3}
+  _groundLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  _raycastDistance: 10
+  _spawnYOffset: 0.2

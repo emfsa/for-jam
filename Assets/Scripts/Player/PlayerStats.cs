@@ -63,20 +63,7 @@ public class PlayerStats : MonoBehaviour
 
     private void Update() => HandleHoldInteraction();
 
-    public void AddMoney(int amount)
-    {
-        _money += amount;
-        UpdateUI();
-    }
-
-    public bool TrySpendMoney(int amount)
-    {
-        if (_money < amount || amount <= 0) return false;
-
-        _money -= amount;
-        UpdateUI();
-        return true;
-    }
+   
 
     public void AddLogs(int amount)
     {
@@ -112,7 +99,7 @@ public class PlayerStats : MonoBehaviour
             switch (hit.collider)
             {
                 case var c when c.TryGetComponent(out Enemy enemy):
-                    enemy.TakeDamage(_attackDamage);
+                    enemy.TakeDamage(_attackDamage,this);
                     break;
 
                 case var c when c.TryGetComponent(out TreeLogic tree):
@@ -277,4 +264,25 @@ public class PlayerStats : MonoBehaviour
 
     public float GetAttackDamage() => _attackDamage;
     public int GetMaxLogCount() => _maxLogCounts;
+
+    public int GetMoney()
+    {
+        return _money;
+    }
+
+    public void AddMoney(int amount)
+    {
+        _money += amount;
+        UpdateUI();
+    }
+
+    public bool TrySpendMoney(int amount)
+    {
+        if (_money < amount || amount <= 0) return false;
+
+        _money -= amount;
+        UpdateUI();
+        return true;
+    }
+
 }
