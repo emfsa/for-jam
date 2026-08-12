@@ -10,12 +10,15 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float _damageToFire = 10f;
     [SerializeField] private float _attackDistance = 2f;
     [SerializeField] private float _attackCooldown = 2f;
-    
+
+    [Header("Loot")]
+    [SerializeField] private int _money = 20;
     
     private NavMeshAgent _navMeshAgent;
     private CampFire _campFire;
     private float _lastAttackTime;
 
+    private PlayerStats _playerStats;
     private void Awake()
     {
         _navMeshAgent = GetComponent<NavMeshAgent>();
@@ -66,21 +69,27 @@ public class Enemy : MonoBehaviour
         
         if(_isSuicide)
         {
-            Die();
+            Die(false);
         }
     }
-    public void TakeDamage(float damage)
+    public void TakeDamage(float damage,PlayerStats attacker)
     {
+        _playerStats = attacker;
         _health -= damage;
         if (_health <= 0)
         {
-            Die();
+            Die(true);
 
         }
     }
 
-    private void Die()
+    private void Die(bool giveReward)
     {
+        if (giveReward && _playerStats != null)
+        {
+            _playerStats.AddMoney(_money);
+        }
+
         Destroy(gameObject);
     }
 }
