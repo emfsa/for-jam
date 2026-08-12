@@ -18,6 +18,15 @@ public class LogStorage : MonoBehaviour
 
     private void Start()
     {
+        if (GameData.Instance != null)
+        {
+            // Восстанавливаем количество бревен
+            _storedLogsCount = GameData.Instance.logStorage;
+
+            // Рассчитываем вместимость: Базовая (10) + (Уровень * Бонус за уровень (5))
+            _maxCapacity = 10 + (GameData.Instance.logStorageLevel * 5);
+        }
+
         UpdateVisuals();
     }
 

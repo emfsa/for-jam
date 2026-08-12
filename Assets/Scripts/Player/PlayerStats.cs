@@ -30,6 +30,9 @@ public class PlayerStats : MonoBehaviour
     [SerializeField] private int _money = 0;
     [SerializeField] private TextMeshProUGUI _moneyCountText;
 
+    private Canvas _UI;
+    private GameObject _shopUI;
+
     private bool _isHolding = false;
     private float _currentHoldTime = 0f;
     private CampFire _targetCampFire;
@@ -56,6 +59,29 @@ public class PlayerStats : MonoBehaviour
             else Debug.LogWarning("PlayerStats: LogCountText не найден!");
         }
 
+        if (_UI == null)
+        {
+            GameObject ui = GameObject.Find("UI");
+            if (ui != null)
+            {
+                _UI = ui.GetComponent<Canvas>();
+            }
+        }
+
+        if (_shopUI == null && _UI != null)
+        {
+            Transform shop = _UI.transform.Find("Shop");
+            if (shop != null)
+            {
+                _shopUI = shop.gameObject;
+                if (_shopUI.activeSelf)
+                {
+                    _shopUI.SetActive(false);
+                }
+            }
+        }
+
+        ApplySavedProgress();
         ResetProgressBar();
     }
 
@@ -63,7 +89,20 @@ public class PlayerStats : MonoBehaviour
 
     private void Update() => HandleHoldInteraction();
 
-   
+    private void ApplySavedProgress()
+    {
+        if (GameData.Instance == null) return;
+
+        // 1. Восстанавливаем ресурсы
+        _money = GameData.Instance.money;
+        _logCounts = GameData.Instance.logInventory;
+
+        // 2. Рассчитываем урон: Базовый (10) + (Уровень * Бонус за уровень (5))
+        _attackDamage = 10f + (GameData.Instance.damageLevel * 5f);
+
+        // 3. Рассчитываем вместимость: Базовая (5) + (Уровень * Бонус за уровень (1))
+        _maxLogCounts = 5 + (GameData.Instance.logLevel * 1);
+    }
 
     public void AddLogs(int amount)
     {
@@ -99,7 +138,7 @@ public class PlayerStats : MonoBehaviour
             switch (hit.collider)
             {
                 case var c when c.TryGetComponent(out Enemy enemy):
-                    enemy.TakeDamage(_attackDamage,this);
+                    enemy.TakeDamage(_attackDamage, this);
                     break;
 
                 case var c when c.TryGetComponent(out TreeLogic tree):
@@ -265,10 +304,7 @@ public class PlayerStats : MonoBehaviour
     public float GetAttackDamage() => _attackDamage;
     public int GetMaxLogCount() => _maxLogCounts;
 
-    public int GetMoney()
-    {
-        return _money;
-    }
+    public int GetMoney() => _money;
 
     public void AddMoney(int amount)
     {
@@ -285,4 +321,18 @@ public class PlayerStats : MonoBehaviour
         return true;
     }
 
+    public int GetLogCount() => _logCounts;
+
+    public void CloseOpenShop()
+    {
+        if (_shopUI != null)
+        {
+            if (_camScript != null)
+            {
+                _camScript.LockCursor(_shopUI.activeSelf);
+            }
+
+            _shopUI.SetActive(!_shopUI.activeSelf);
+        }
+    }
 }
