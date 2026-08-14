@@ -37,6 +37,7 @@ public class PlayerStats : MonoBehaviour
     private float _currentHoldTime = 0f;
     private CampFire _targetCampFire;
     private LogStorage _targetLogStorage;
+    private Tent _targetTent;
 
     private void Awake()
     {
@@ -118,7 +119,7 @@ public class PlayerStats : MonoBehaviour
 
     public bool TryUseLog()
     {
-        if (_logCounts > 0)
+        if (_logCounts > 0 && !_targetCampFire._isDay)
         {
             _logCounts--;
             UpdateUI();
@@ -197,7 +198,10 @@ public class PlayerStats : MonoBehaviour
                     _targetLogStorage = logStorage;
                     StartHolding();
                     break;
-
+                case var c when c.TryGetComponent(out Tent tent): 
+                    _targetTent = tent;
+                    StartHolding();
+                    break;
                 default:
                     CancelHold();
                     break;
@@ -212,7 +216,8 @@ public class PlayerStats : MonoBehaviour
         Ray ray = _camScript.GetCenterRay();
         bool isLookingAtTarget = Physics.Raycast(ray, out RaycastHit hit, _interactionDistance, _interactionLayerMask) &&
             ((_targetCampFire != null && hit.collider.GetComponent<CampFire>() == _targetCampFire) ||
-             (_targetLogStorage != null && hit.collider.GetComponent<LogStorage>() == _targetLogStorage));
+             (_targetLogStorage != null && hit.collider.GetComponent<LogStorage>() == _targetLogStorage)||
+             (_targetTent != null && hit.collider.GetComponent<Tent>() == _targetTent));
 
         if (!isLookingAtTarget)
         {
@@ -246,8 +251,12 @@ public class PlayerStats : MonoBehaviour
                 }
                 UpdateUI();
             }
+            else if (_targetTent != null)
+            {
+                _targetTent.OpenShop(_shopUI,_camScript);
+            }
 
-            CancelHold();
+                CancelHold();
         }
     }
 
@@ -323,16 +332,8 @@ public class PlayerStats : MonoBehaviour
 
     public int GetLogCount() => _logCounts;
 
-    public void CloseOpenShop()
+    public CamScript getCam()
     {
-        if (_shopUI != null)
-        {
-            if (_camScript != null)
-            {
-                _camScript.LockCursor(_shopUI.activeSelf);
-            }
-
-            _shopUI.SetActive(!_shopUI.activeSelf);
-        }
+        return _camScript;
     }
 }

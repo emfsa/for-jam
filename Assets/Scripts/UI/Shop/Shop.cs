@@ -5,7 +5,7 @@ public class Shop : MonoBehaviour
     [SerializeField] private PlayerStats _player;
     [SerializeField] private LogStorage _logStorage;
     [SerializeField] private CampFire _campFire;
-
+    private Tent _tent;
     [Header("1. Апгрейд Урона")]
     [SerializeField] private float _damageBonus = 5f;
     [SerializeField] private int _baseDamageCost = 50;
@@ -27,6 +27,7 @@ public class Shop : MonoBehaviour
 
     private void Start()
     {
+        if (_tent == null) _tent = FindAnyObjectByType<Tent>();
         if (_player == null) _player = FindAnyObjectByType<PlayerStats>();
         if (_campFire == null) _campFire = FindAnyObjectByType<CampFire>();
         if (_logStorage == null) _logStorage = FindAnyObjectByType<LogStorage>();
@@ -119,7 +120,10 @@ public class Shop : MonoBehaviour
             textScript.UpdateText();
         }
     }
-
+    public void CloseShop()
+    {
+        _tent.CloseOpenShop(this.gameObject, _player.getCam());
+    }
     public int GetDamageUpgradeCost() => GetCurrentCost(_baseDamageCost, _damageCostMultiplier, GetDamageUpgradeLevel());
     public int GetLogUpgradeCost() => GetCurrentCost(_baseLogCost, _logCostMultiplier, GetLogUpgradeLevel());
     public int GetStorageUpgradeCost() => GetCurrentCost(_baseStorageCost, _storageCostMultiplier, GetStorageUpgradeLevel());
@@ -131,4 +135,6 @@ public class Shop : MonoBehaviour
     public int GetFireUpgradeLevel() => GameData.Instance != null ? GameData.Instance.fireLevel : 0;
 
     public int GetMoney() => _player != null ? _player.GetMoney() : 0;
+
+    
 }

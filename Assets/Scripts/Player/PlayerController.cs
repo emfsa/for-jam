@@ -10,20 +10,49 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float _currentSpeed = 5f;
     [SerializeField] private float _walkSpeed = 5f;
     [SerializeField] private float _runSpeed = 8f;
+    [SerializeField] private float _gravity = -9.81f;
+    
+    private Vector3 _velocity;
     private Vector2 _move;
     private void Awake()
     {
-        _characterController = GetComponent<CharacterController>();
-        _cam = GetComponentInChildren<CinemachineCamera>();
+        if( _characterController == null )
+            _characterController = GetComponent<CharacterController>();
+        if(_cam == null)
+            _cam = GetComponentInChildren<CinemachineCamera>();
     }
     public void OnMove(InputValue val)
     {
        _move = val.Get<Vector2>();
     }
-
+    public void OnSprint(InputValue val)
+    {
+        _currentSpeed = val.isPressed ? _runSpeed : _walkSpeed;
+        Debug.Log($"Current Speed: {_currentSpeed}");
+    }
     private void Update()
     {
-        _characterController.Move((GetForward() * _move.y + GetRight() * _move.x) * Time.deltaTime * _currentSpeed);
+        HandleGravity();
+        HandleMovement();
+    }
+
+    private void HandleGravity()
+    {
+        if(_characterController.isGrounded && _velocity.y < 0)
+        {
+            _velocity.y = -2f;
+        }
+
+        _velocity.y += _gravity * Time.deltaTime;
+
+    }
+    private void HandleMovement()
+    {
+        Vector3 moveDirection = ((GetForward() * _move.y + GetRight() * _move.x) * _currentSpeed);
+
+        Vector3 finalMove = moveDirection + _velocity;
+
+        _characterController.Move(finalMove * Time.deltaTime);
     }
     private Vector3 GetForward()
     {
@@ -32,11 +61,7 @@ public class PlayerController : MonoBehaviour
         forward = forward.normalized;
         return forward;
     }
-    public void OnSprint(InputValue val)
-    {
-        _currentSpeed = val.isPressed ? _runSpeed : _walkSpeed;
-        Debug.Log($"Current Speed: {_currentSpeed}");
-    }
+    
     private Vector3 GetRight()
     {
         Vector3 right = _cam.transform.right;

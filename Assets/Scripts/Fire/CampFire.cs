@@ -1,13 +1,19 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CampFire : MonoBehaviour
 {
+    [Header("UI")]
     [SerializeField] private TextMeshProUGUI _fireTimeText;
-    private float _fireTime = 100f;
-    private bool _isBurning = true;
-    private float _logTime = 20f;
 
+    [Header("Settings")]
+    [SerializeField] private float _fireTime = 100f;
+    [SerializeField] private float _logTime = 20f; // Базовое время от одного бревна
+
+    private string _sceneName;
+    private bool _isBurning = true;
+    public bool _isDay  => _sceneName == "Day";
     private void Awake()
     {
         if (_fireTimeText == null)
@@ -22,10 +28,18 @@ public class CampFire : MonoBehaviour
                 Debug.LogWarning("CampFire: FireTimeText не найден!");
             }
         }
+
+        if(_sceneName == null)
+        {
+            Scene currentScene = SceneManager.GetActiveScene();
+            _sceneName = currentScene.name;
+        }
     }
 
     private void Start()
     {
+        ApplySavedProgress();
+        HideFireTime();
         UpdateFireTimeText();
     }
 
@@ -34,8 +48,17 @@ public class CampFire : MonoBehaviour
         StartFireTime();
     }
 
+    private void ApplySavedProgress()
+    {
+        if (GameData.Instance == null) return;
+
+        // Рассчитываем время горения от бревна: Базовое (20) + (Уровень * Бонус (2))
+        _logTime = 20f + (GameData.Instance.fireLevel * 2f);
+    }
+
     public void AddFireTime()
     {
+        if (_isDay) return;
         _fireTime += _logTime;
         UpdateFireTimeText();
     }
@@ -43,25 +66,27 @@ public class CampFire : MonoBehaviour
     public void RemoveTime(float enemyAmount)
     {
         _fireTime -= enemyAmount;
-        UpdateFireTimeText();
-    }
 
-    public void UpdateFireTimeText()
-    {
         if (_fireTime < 0)
         {
             _fireTime = 0;
         }
 
+        UpdateFireTimeText();
+    }
+
+    public void UpdateFireTimeText()
+    {
         if (_fireTimeText != null)
         {
-            _fireTimeText.text = _fireTime.ToString("F0");
+            _fireTimeText.text = Mathf.CeilToInt(_fireTime).ToString();
         }
     }
 
     private void StartFireTime()
     {
-        if (!_isBurning) return;
+        if (!_isBurning || _isDay) return;
+      
 
         if (_fireTime > 0)
         {
@@ -76,6 +101,19 @@ public class CampFire : MonoBehaviour
             Lose();
         }
     }
+  
+    public void HideFireTime()
+    {
+        if (_isDay)
+        {
+            _isBurning = false;
+            if (_fireTimeText != null)
+            {
+                _fireTimeText.gameObject.SetActive(false);
+            }
+        }
+    }
+
 
     private void Lose()
     {
