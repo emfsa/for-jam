@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 852eea40d8365fe43befc5867f58e687
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 4890085278179872738
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 211915
+  packageName: Easy Mesh Combine Tool
+  packageVersion: 1.1
+  assetPath: Assets/EasyMeshCombine/Scene/Test_SceneSettings.lighting
+  uploadId: 772025

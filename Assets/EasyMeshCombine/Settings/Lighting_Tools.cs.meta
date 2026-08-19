@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 430685ecdb18ce54f99433566f8f0515
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 211915
+  packageName: Easy Mesh Combine Tool
+  packageVersion: 1.1
+  assetPath: Assets/EasyMeshCombine/Settings/Lighting_Tools.cs
+  uploadId: 772025
