@@ -13,6 +13,7 @@ public class TreeLogic : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
+        
         _treeHealth -= damage;
         if (_treeHealth <= 0)
         {

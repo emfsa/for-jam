@@ -7,7 +7,7 @@ public class CamScript : MonoBehaviour
 
     void Awake()
     {
-        if(_cam == null) { _cam = GetComponent<CinemachineCamera>(); }
+        if(_cam == null) { _cam = FindAnyObjectByType<CinemachineCamera>(); }
         
         LockCursor(true);
     }

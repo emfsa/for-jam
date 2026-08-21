@@ -124,4 +124,8 @@ public class CampFire : MonoBehaviour
     {
         _logTime += 2f;
     }
+    public float GetFireTime()
+    {
+        return _fireTime;
+    }
 }
