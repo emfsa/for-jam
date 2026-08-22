@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class PlayerStats : MonoBehaviour
@@ -38,7 +39,7 @@ public class PlayerStats : MonoBehaviour
     private CampFire _targetCampFire;
     private LogStorage _targetLogStorage;
     private Tent _targetTent;
-
+    private bool _isDay => SceneManager.GetActiveScene().name == "Day";
     private void Awake()
     {
         if (_camScript == null)
@@ -253,8 +254,16 @@ public class PlayerStats : MonoBehaviour
             }
             else if (_targetTent != null)
             {
-                _targetTent.OpenShop(_shopUI,_camScript);
+                if (_isDay) 
+                { 
+                    _targetTent.OpenShop(_shopUI, _camScript); 
+                }
+                else
+                {
+                    _targetTent.Switch("Day");
+                }
             }
+
 
                 CancelHold();
         }

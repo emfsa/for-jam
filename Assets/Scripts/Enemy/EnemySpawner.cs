@@ -1,8 +1,12 @@
+using System;
 using UnityEngine;
 using UnityEngine.AI;
 
 public class EnemySpawner : MonoBehaviour
 {
+    // Событие завершения волны
+    public static event Action OnWaveCompleted;
+
     [Header("Prefabs")]
     [SerializeField] private GameObject[] _enemyPrefabs;
     [SerializeField] private CampFire _campFire;
@@ -11,12 +15,16 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private float _spawnInterval = 5f;
     [SerializeField] private float _minRadius = 10f;
     [SerializeField] private float _maxRadius = 20f;
+    [SerializeField] private int _maxEnemiesToEnd = 10;
 
     private float _timer;
+    private int _spawnedEnemiesCount = 0;
+    private int _aliveEnemiesCount = 0;
+    private bool _isSpawningFinished = false;
 
     private void Start()
     {
-        if(_campFire == null)
+        if (_campFire == null)
         {
             _campFire = FindAnyObjectByType<CampFire>();
             if (_campFire == null)
@@ -24,11 +32,12 @@ public class EnemySpawner : MonoBehaviour
                 Debug.LogError("CampFire not found in the scene.");
             }
         }
+       
     }
 
     private void Update()
     {
-        if(_campFire == null || _enemyPrefabs == null || _enemyPrefabs.Length == 0)
+        if (_isSpawningFinished || _campFire == null || _enemyPrefabs == null || _enemyPrefabs.Length == 0)
         {
             return;
         }
@@ -40,25 +49,54 @@ public class EnemySpawner : MonoBehaviour
             SpawnRandomEnemy();
             _timer = 0f;
         }
-
     }
-
 
     private void SpawnRandomEnemy()
     {
-        Vector2 randomCircle = Random.insideUnitCircle.normalized * Random.Range(_minRadius, _maxRadius);
+        if (_spawnedEnemiesCount >= _maxEnemiesToEnd)
+        {
+            _isSpawningFinished = true;
+            return;
+        }
+
+        Vector2 randomCircle = UnityEngine.Random.insideUnitCircle.normalized * UnityEngine.Random.Range(_minRadius, _maxRadius);
         Vector3 spawnPosition = _campFire.transform.position + new Vector3(randomCircle.x, 0, randomCircle.y);
 
-        if(NavMesh.SamplePosition(spawnPosition, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+        if (NavMesh.SamplePosition(spawnPosition, out NavMeshHit hit, 5f, NavMesh.AllAreas))
         {
-            int randomIndex = Random.Range(0, _enemyPrefabs.Length);
+            int randomIndex = UnityEngine.Random.Range(0, _enemyPrefabs.Length);
             GameObject selectedPrefab = _enemyPrefabs[randomIndex];
 
             Instantiate(selectedPrefab, hit.position, Quaternion.identity);
+
+            _spawnedEnemiesCount++;
+            _aliveEnemiesCount++;
+
+            if (_spawnedEnemiesCount >= _maxEnemiesToEnd)
+            {
+                _isSpawningFinished = true;
+            }
         }
     }
 
-    //удалить потом
+    // Вызывать этот метод из скрипта врага при его смерти: enemySpawner.RegisterEnemyDeath();
+    public void RegisterEnemyDeath()
+    {
+        _aliveEnemiesCount--;
+
+        // Если заспавнили всех И убили последнего живого
+        if (_isSpawningFinished && _aliveEnemiesCount <= 0)
+        {
+            Debug.Log("Волна полностью отбита!");
+            OnWaveCompleted?.Invoke();
+        }
+    }
+
+    public bool isEnd()
+    {
+        return _isSpawningFinished && _aliveEnemiesCount <= 0;
+    }
+
     private void OnDrawGizmosSelected()
     {
         Vector3 center = _campFire != null ? _campFire.transform.position : transform.position;
@@ -69,4 +107,6 @@ public class EnemySpawner : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(center, _maxRadius);
     }
+    
+    
 }

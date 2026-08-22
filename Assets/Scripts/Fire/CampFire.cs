@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,6 +15,7 @@ public class CampFire : MonoBehaviour
     private string _sceneName;
     private bool _isBurning = true;
     public bool _isDay  => _sceneName == "Day";
+    private bool _isCompleted = false;
     private void Awake()
     {
         if (_fireTimeText == null)
@@ -35,6 +37,16 @@ public class CampFire : MonoBehaviour
             _sceneName = currentScene.name;
         }
     }
+    private void OnEnable()
+    {
+        EnemySpawner.OnWaveCompleted += StopFireTimer;
+    }
+
+    private void OnDisable()
+    {
+        EnemySpawner.OnWaveCompleted -= StopFireTimer;
+    }
+    
 
     private void Start()
     {
@@ -85,7 +97,7 @@ public class CampFire : MonoBehaviour
 
     private void StartFireTime()
     {
-        if (!_isBurning || _isDay) return;
+        if (!_isBurning || _isDay || _isCompleted) return;
       
 
         if (_fireTime > 0)
@@ -101,10 +113,14 @@ public class CampFire : MonoBehaviour
             Lose();
         }
     }
-  
+    private void StopFireTimer()
+    {
+        _isCompleted = true;
+        HideFireTime();
+    }
     public void HideFireTime()
     {
-        if (_isDay)
+        if (_isDay || _isCompleted)
         {
             _isBurning = false;
             if (_fireTimeText != null)
