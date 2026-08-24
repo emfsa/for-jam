@@ -132,6 +132,7 @@ MonoBehaviour:
   _damageToFire: 10
   _attackDistance: 2
   _attackCooldown: 2
+  _money: 20
 --- !u!195 &5888143494082218057
 NavMeshAgent:
   m_ObjectHideFlags: 0
