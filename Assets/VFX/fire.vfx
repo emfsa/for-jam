@@ -88,8 +88,8 @@ MonoBehaviour:
       serializedVersion: 2
       x: 681
       y: -494
-      width: 477
-      height: 1666
+      width: 475
+      height: 1357
     contents:
     - model: {fileID: 114023846229194376}
       id: 0
@@ -107,7 +107,7 @@ MonoBehaviour:
     x: 479
     y: -494
     width: 677
-    height: 1902
+    height: 1905
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -333,7 +333,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614720}
-  m_UIPosition: {x: 706, y: 524}
+  m_UIPosition: {x: 706, y: 481}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1854,7 +1854,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614711}
   - {fileID: 8926484042661614717}
   - {fileID: 8926484042661614746}
-  m_UIPosition: {x: 715, y: 881}
+  m_UIPosition: {x: 706, y: 883}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
