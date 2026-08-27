@@ -28,7 +28,7 @@ public class PlayerController : MonoBehaviour
     public void OnSprint(InputValue val)
     {
         _currentSpeed = val.isPressed ? _runSpeed : _walkSpeed;
-        Debug.Log($"Current Speed: {_currentSpeed}");
+        /*Debug.Log($"Current Speed: {_currentSpeed}");*/
     }
     private void Update()
     {

@@ -37,7 +37,7 @@
                     "name": "Interact",
                     "type": "Button",
                     "id": "852140f2-7766-474d-8707-702459ba45f3",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "Hold",
                     "initialStateCheck": false
@@ -503,8 +503,8 @@
                 },
                 {
                     "name": "",
-                    "id": "9ee6fee5-7340-4a54-8e3e-eaa3de0da5a7",
-                    "path": "<Keyboard>/e",
+                    "id": "1cf9d30d-928f-453b-b717-38ed90bb1829",
+                    "path": "<Keyboard>/f",
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",

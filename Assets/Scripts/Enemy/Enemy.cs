@@ -4,16 +4,23 @@ using UnityEngine.AI;
 public class Enemy : MonoBehaviour
 {
     [Header("HealthStats")]
-    [SerializeField] private float _health = 30f;
+    [SerializeField] private float _baseHealth = 30f;
+    [SerializeField] private float _healthPerLevel = 10f; // Прирост ХП за каждый уровень урона
     [SerializeField] private bool _isSuicide = true;
 
     [Header("AttackStats")]
-    [SerializeField] private float _damageToFire = 10f;
+    [SerializeField] private float _baseDamageToFire = 10f;
+    [SerializeField] private float _damagePerLevel = 2f; // Прирост урона костру за уровень
     [SerializeField] private float _attackDistance = 2f;
     [SerializeField] private float _attackCooldown = 2f;
 
     [Header("Loot")]
-    [SerializeField] private int _money = 20;
+    [SerializeField] private int _baseMoney = 20;
+    [SerializeField] private int _moneyPerLevel = 5; // Доп. деньги за каждый уровень урона
+
+    private float _currentHealth;
+    private float _currentDamageToFire;
+    private int _currentMoney;
 
     private NavMeshAgent _navMeshAgent;
     private CampFire _campFire;
@@ -33,6 +40,8 @@ public class Enemy : MonoBehaviour
         _campFire = FindAnyObjectByType<CampFire>();
         _enemySpawner = FindAnyObjectByType<EnemySpawner>();
 
+        ApplyStatsScaling();
+
         if (_campFire != null)
         {
             _navMeshAgent.SetDestination(_campFire.transform.position);
@@ -41,6 +50,20 @@ public class Enemy : MonoBehaviour
         {
             Debug.LogWarning("CampFire not found in the scene.");
         }
+    }
+
+    private void ApplyStatsScaling()
+    {
+        int damageLevel = 0;
+        if (GameData.Instance != null)
+        {
+            damageLevel = GameData.Instance.damageLevel;
+        }
+
+        // Масштабируем характеристики от уровня урона игрока
+        _currentHealth = _baseHealth + (damageLevel * _healthPerLevel);
+        _currentDamageToFire = _baseDamageToFire + (damageLevel * _damagePerLevel);
+        _currentMoney = _baseMoney + (damageLevel * _moneyPerLevel);
     }
 
     private void Update()
@@ -70,7 +93,7 @@ public class Enemy : MonoBehaviour
 
     private void AttackCamp()
     {
-        _campFire.RemoveTime(_damageToFire);
+        _campFire.RemoveTime(_currentDamageToFire);
 
         if (_isSuicide)
         {
@@ -83,9 +106,9 @@ public class Enemy : MonoBehaviour
         if (_isDead) return;
 
         _playerStats = attacker;
-        _health -= damage;
+        _currentHealth -= damage;
 
-        if (_health <= 0)
+        if (_currentHealth <= 0)
         {
             Die(true);
         }
@@ -98,7 +121,7 @@ public class Enemy : MonoBehaviour
 
         if (giveReward && _playerStats != null)
         {
-            _playerStats.AddMoney(_money);
+            _playerStats.AddMoney(_currentMoney);
         }
 
         if (_enemySpawner != null)

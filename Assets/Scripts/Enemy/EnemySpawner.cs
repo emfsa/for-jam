@@ -15,8 +15,12 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private float _spawnInterval = 5f;
     [SerializeField] private float _minRadius = 10f;
     [SerializeField] private float _maxRadius = 20f;
-    [SerializeField] private int _maxEnemiesToEnd = 10;
 
+    [Header("Wave Scaling")]
+    [SerializeField] private int _baseEnemiesCount = 10; // Базовый размер волны
+    [SerializeField] private int _additionalEnemiesPerLevel = 3; // Сколько врагов добавляется за уровень урона
+
+    private int _maxEnemiesToEnd;
     private float _timer;
     private int _spawnedEnemiesCount = 0;
     private int _aliveEnemiesCount = 0;
@@ -24,6 +28,8 @@ public class EnemySpawner : MonoBehaviour
 
     private void Start()
     {
+        CalculateWaveSize();
+
         if (_campFire == null)
         {
             _campFire = FindAnyObjectByType<CampFire>();
@@ -32,7 +38,18 @@ public class EnemySpawner : MonoBehaviour
                 Debug.LogError("CampFire not found in the scene.");
             }
         }
-       
+    }
+
+    private void CalculateWaveSize()
+    {
+        int damageLevel = 0;
+        if (GameData.Instance != null)
+        {
+            damageLevel = GameData.Instance.damageLevel;
+        }
+
+        // Вычисляем общее количество врагов в волне
+        _maxEnemiesToEnd = _baseEnemiesCount + (damageLevel * _additionalEnemiesPerLevel);
     }
 
     private void Update()
@@ -49,6 +66,21 @@ public class EnemySpawner : MonoBehaviour
             SpawnRandomEnemy();
             _timer = 0f;
         }
+    }
+
+    private void OnEnable()
+    {
+        CampFire.OnTimeEnd += StopSpawn;
+    }
+
+    private void OnDisable()
+    {
+        CampFire.OnTimeEnd -= StopSpawn;
+    }
+
+    private void StopSpawn()
+    {
+        _isSpawningFinished = true;
     }
 
     private void SpawnRandomEnemy()
@@ -79,7 +111,6 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
-    // Вызывать этот метод из скрипта врага при его смерти: enemySpawner.RegisterEnemyDeath();
     public void RegisterEnemyDeath()
     {
         _aliveEnemiesCount--;
@@ -107,6 +138,4 @@ public class EnemySpawner : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(center, _maxRadius);
     }
-    
-    
 }

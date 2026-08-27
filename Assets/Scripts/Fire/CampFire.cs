@@ -2,19 +2,29 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
+using UnityEngine.VFX;
 
 public class CampFire : MonoBehaviour
 {
+    public static event Action OnTimeEnd;
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI _fireTimeText;
+    [SerializeField] private GameObject _looseUI;
 
     [Header("Settings")]
     [SerializeField] private float _fireTime = 100f;
     [SerializeField] private float _logTime = 20f; // Базовое время от одного бревна
+   
+    [Header("lightning")]
+    [SerializeField] private Light _light;
+    [SerializeField] private VisualEffect _effects;
+    [SerializeField] private float _powerMultiplier = 1.2f; // Множитель: сколько power дает 1 секунда
+    [SerializeField] private float _lightMultiplier = 0.5f;
 
     private string _sceneName;
     private bool _isBurning = true;
-    public bool _isDay  => _sceneName == "Day";
+    public bool _isDay => _sceneName == "Day";
     private bool _isCompleted = false;
     private void Awake()
     {
@@ -30,11 +40,30 @@ public class CampFire : MonoBehaviour
                 Debug.LogWarning("CampFire: FireTimeText не найден!");
             }
         }
-
-        if(_sceneName == null)
+        if (_effects == null)
+        {
+            _effects = GetComponentInChildren<VisualEffect>();
+            if (_effects == null)
+            {
+                Debug.Log("VisualEffectsNULL {CampFire}");
+            }
+        }
+        if (_light == null)
+        {
+            _light = GetComponentInChildren<Light>();
+            if (_light == null)
+            {
+                Debug.Log("LightNull {CampFire}");
+            }
+        }
+        if (_sceneName == null)
         {
             Scene currentScene = SceneManager.GetActiveScene();
             _sceneName = currentScene.name;
+        }
+        if(_looseUI != null)
+        {
+            _looseUI.SetActive(false);
         }
     }
     private void OnEnable()
@@ -46,13 +75,18 @@ public class CampFire : MonoBehaviour
     {
         EnemySpawner.OnWaveCompleted -= StopFireTimer;
     }
-    
+
 
     private void Start()
     {
         ApplySavedProgress();
         HideFireTime();
         UpdateFireTimeText();
+        UpdateFirePower();
+        if (!TryStartLight())
+        {
+            FinishLight();
+        }
     }
 
     private void Update()
@@ -73,6 +107,7 @@ public class CampFire : MonoBehaviour
         if (_isDay) return;
         _fireTime += _logTime;
         UpdateFireTimeText();
+        UpdateFirePower();
     }
 
     public void RemoveTime(float enemyAmount)
@@ -85,6 +120,7 @@ public class CampFire : MonoBehaviour
         }
 
         UpdateFireTimeText();
+        UpdateFirePower();
     }
 
     public void UpdateFireTimeText()
@@ -98,21 +134,39 @@ public class CampFire : MonoBehaviour
     private void StartFireTime()
     {
         if (!_isBurning || _isDay || _isCompleted) return;
-      
+
 
         if (_fireTime > 0)
         {
             _fireTime -= Time.deltaTime;
+            UpdateFirePower();
             UpdateFireTimeText();
         }
         else
         {
             _fireTime = 0;
+            UpdateFirePower();
             UpdateFireTimeText();
             _isBurning = false;
             Lose();
         }
     }
+
+    private void UpdateFirePower()
+    {
+        if (_effects != null)
+        {
+            int currentPower = Mathf.Max(0, Mathf.RoundToInt(_fireTime * _powerMultiplier));
+            _effects.SetInt("power", currentPower);
+        }
+
+        if (_light != null)
+        {
+            float currentLightIntensity = _fireTime * _lightMultiplier;
+            _light.intensity = Mathf.Max(0, currentLightIntensity);
+        }
+    }
+
     private void StopFireTimer()
     {
         _isCompleted = true;
@@ -130,10 +184,27 @@ public class CampFire : MonoBehaviour
         }
     }
 
-
+    private bool TryStartLight()
+    {
+        if (_isDay) return false;
+        _effects.gameObject.SetActive(true);
+        _light.gameObject.SetActive(true);
+        return true;
+    }
+    private void FinishLight()
+    {
+        if (_isDay || _fireTime == 0)
+        {
+            _light.gameObject.SetActive(false);
+            _effects.gameObject.SetActive(false);
+        }
+    }
     private void Lose()
     {
-        Debug.Log("You lost!");
+        OnTimeEnd?.Invoke();
+        _looseUI.SetActive(true);
+        CamScript cam = new CamScript();
+        cam.LockCursor(false);
     }
 
     public void UpgradeBaseFireTime()

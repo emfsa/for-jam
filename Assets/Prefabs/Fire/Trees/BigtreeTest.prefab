@@ -131,13 +131,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TreeLogic
   _logCount: 2
-  _treeHealth: 30
+  _treeHealth: 50
   _logPrefab: {fileID: 8756114960212971372, guid: 43e9705ac0d67634485a31e98590fcf9, type: 3}
   _groundLayer:
     serializedVersion: 2
     m_Bits: 8
   _raycastDistance: 10
-  _spawnYOffset: 0.2
+  _spawnYOffset: 1
 --- !u!54 &8004565645196340506
 Rigidbody:
   m_ObjectHideFlags: 0

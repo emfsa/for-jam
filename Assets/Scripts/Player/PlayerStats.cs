@@ -26,6 +26,10 @@ public class PlayerStats : MonoBehaviour
     [Header("Attack")]
     [SerializeField] private float _attackDamage = 10f;
     [SerializeField] private float _attackDistance = 3f;
+    [SerializeField] private float _attackCooldown = 0.5f; // Задержка между ударами (подгоните под длину анимации)
+    [SerializeField] private Animator _handAnimator;
+
+    private float _lastAttackTime;
 
     [Header("Money")]
     [SerializeField] private int _money = 0;
@@ -82,7 +86,14 @@ public class PlayerStats : MonoBehaviour
                 }
             }
         }
-
+        if(_handAnimator == null)
+        {
+            _handAnimator = GetComponentInChildren<Animator>();
+            if (_handAnimator == null)
+            {
+                Debug.Log("HandAnimatorNULL {PlayerStats}");
+            }
+        }
         ApplySavedProgress();
         ResetProgressBar();
     }
@@ -133,6 +144,12 @@ public class PlayerStats : MonoBehaviour
     {
         if (!val.isPressed || _camScript == null) return;
 
+        if (Time.time < _lastAttackTime + _attackCooldown) return;
+
+        _lastAttackTime = Time.time;
+
+        playAttackAnim();
+
         Ray ray = _camScript.GetCenterRay();
 
         if (Physics.Raycast(ray, out RaycastHit hit, _attackDistance, _interactionLayerMask))
@@ -149,7 +166,11 @@ public class PlayerStats : MonoBehaviour
             }
         }
     }
-
+    private void playAttackAnim()
+    {
+        if (_handAnimator == null) return;
+        _handAnimator.Play("heroL|axeAtack", -1, 0f);
+    }
     public void OnTakeItem(InputValue val)
     {
         if (!val.isPressed || _camScript == null) return;
