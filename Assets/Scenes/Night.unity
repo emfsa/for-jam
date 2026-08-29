@@ -381,11 +381,11 @@ PrefabInstance:
       objectReference: {fileID: 1132972802}
     - target: {fileID: 4883255101914813648, guid: 7ba7adec0c7066948af4e02bc4a46a63, type: 3}
       propertyPath: _maxRadius
-      value: 30
+      value: 26
       objectReference: {fileID: 0}
     - target: {fileID: 4883255101914813648, guid: 7ba7adec0c7066948af4e02bc4a46a63, type: 3}
       propertyPath: _minRadius
-      value: 20
+      value: 22
       objectReference: {fileID: 0}
     - target: {fileID: 4883255101914813648, guid: 7ba7adec0c7066948af4e02bc4a46a63, type: 3}
       propertyPath: _spawnInterval
