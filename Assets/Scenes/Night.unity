@@ -131,6 +131,14 @@ PrefabInstance:
       propertyPath: m_fontSize
       value: 60
       objectReference: {fileID: 0}
+    - target: {fileID: 1198465263982886447, guid: fd2316f8621796a469e5a3e948fa2b74, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 245852237}
+    - target: {fileID: 1198465263982886447, guid: fd2316f8621796a469e5a3e948fa2b74, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: TryPause
+      objectReference: {fileID: 0}
     - target: {fileID: 1608934127754937824, guid: fd2316f8621796a469e5a3e948fa2b74, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -348,6 +356,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8016fe58245c09543a0e4cfe6bca6028, type: 3}
+--- !u!114 &245852237 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3753302890994169752, guid: 8016fe58245c09543a0e4cfe6bca6028, type: 3}
+  m_PrefabInstance: {fileID: 245852236}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f218931fcfaab50499b14565b4715940, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
 --- !u!1001 &443303607
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -127,9 +127,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1198465263982886447, guid: fd2316f8621796a469e5a3e948fa2b74, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 887809939}
     - target: {fileID: 3004771165141214581, guid: fd2316f8621796a469e5a3e948fa2b74, type: 3}
       propertyPath: m_Name
       value: UI
+      objectReference: {fileID: 0}
+    - target: {fileID: 3157247147650570065, guid: fd2316f8621796a469e5a3e948fa2b74, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4708676159404100310, guid: fd2316f8621796a469e5a3e948fa2b74, type: 3}
       propertyPath: m_Pivot.x
@@ -211,15 +219,16 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8691241854764001719, guid: fd2316f8621796a469e5a3e948fa2b74, type: 3}
-      propertyPath: m_Name
-      value: Shop
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fd2316f8621796a469e5a3e948fa2b74, type: 3}
+--- !u!1 &408552211 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7368651121763511071, guid: fc54982931523224ab4185708570e3c6, type: 3}
+  m_PrefabInstance: {fileID: 5337225978549092249}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &513175512
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -310,6 +319,23 @@ Terrain:
   m_CorrespondingSourceObject: {fileID: 7704450015501815209, guid: fc54982931523224ab4185708570e3c6, type: 3}
   m_PrefabInstance: {fileID: 5337225978549092249}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &530211674
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 408552211}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5285b095e1536c41a77e4ea0fbaa4ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainTreeSystem
+  _terrain: {fileID: 530211671}
+  _interactiveTreePrefab: {fileID: 6090709893795276424, guid: 5d893c3ee0afbbf4cb6a9e79d3dc1e7b, type: 3}
+  _terrainLayer:
+    serializedVersion: 2
+    m_Bits: 72
 --- !u!1001 &586871320
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -365,10 +391,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7747095119289071043, guid: 52f382f2cd307824e861260c6e99c587, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1371359221}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 52f382f2cd307824e861260c6e99c587, type: 3}
 --- !u!1 &723445879
 GameObject:
@@ -497,28 +520,17 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!1 &1371359218 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7747095119289071043, guid: 52f382f2cd307824e861260c6e99c587, type: 3}
-  m_PrefabInstance: {fileID: 586871320}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1371359221
+--- !u!114 &887809939 stripped
 MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 3753302890994169752, guid: 8016fe58245c09543a0e4cfe6bca6028, type: 3}
+  m_PrefabInstance: {fileID: 6943855433363599023}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1371359218}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b5285b095e1536c41a77e4ea0fbaa4ae, type: 3}
+  m_Script: {fileID: 11500000, guid: f218931fcfaab50499b14565b4715940, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TerrainTreeSystem
-  _terrain: {fileID: 530211671}
-  _interactiveTreePrefab: {fileID: 6090709893795276424, guid: 5d893c3ee0afbbf4cb6a9e79d3dc1e7b, type: 3}
-  _terrainLayer:
-    serializedVersion: 2
-    m_Bits: 72
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
 --- !u!114 &1591931598 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5538344842966358736, guid: fd2316f8621796a469e5a3e948fa2b74, type: 3}
@@ -650,7 +662,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7368651121763511071, guid: fc54982931523224ab4185708570e3c6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 530211674}
   m_SourcePrefab: {fileID: 100100000, guid: fc54982931523224ab4185708570e3c6, type: 3}
 --- !u!1001 &5708167589366015359
 PrefabInstance:

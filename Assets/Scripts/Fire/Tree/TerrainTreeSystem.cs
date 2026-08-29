@@ -12,7 +12,6 @@ public class TerrainTreeSystem : MonoBehaviour
     private TerrainData _terrainData;
     private TerrainCollider _terrainCollider;
 
-    // СТРОГО без static! Свой массив бэкапа для каждой сцены
     private TreeInstance[] _savedOriginalTrees;
     private bool _isInitialized = false;
 
@@ -25,6 +24,7 @@ public class TerrainTreeSystem : MonoBehaviour
     {
         if (_isInitialized) return;
 
+        // Если террейн не задан вручную, берем террейн текущей сцены
         if (_terrain == null) _terrain = GetComponent<Terrain>() ?? Terrain.activeTerrain;
 
         if (_terrain != null && _terrain.terrainData != null)
@@ -32,7 +32,7 @@ public class TerrainTreeSystem : MonoBehaviour
             _terrainData = _terrain.terrainData;
             _terrainCollider = _terrain.GetComponent<TerrainCollider>();
 
-            // Клонируем исходный массив деревьев ТОЛЬКО один раз при загрузке этой сцены
+            // Клонируем исходный массив деревьев строго для ТЕКУЩЕГО террейна
             _savedOriginalTrees = (TreeInstance[])_terrainData.treeInstances.Clone();
             _isInitialized = true;
         }
@@ -91,12 +91,10 @@ public class TerrainTreeSystem : MonoBehaviour
         float treeAngleDegrees = tree.rotation * Mathf.Rad2Deg;
         Quaternion finalRotation = Quaternion.Euler(0f, treeAngleDegrees, 0f);
 
-        // Удаляем дерево только в Runtime-копии массива
         List<TreeInstance> treeList = new List<TreeInstance>(_terrainData.treeInstances);
         treeList.RemoveAt(index);
         _terrainData.treeInstances = treeList.ToArray();
 
-        // Обновляем коллайдер террейна без вызова Flush(), чтобы не пачкать файл ассета
         if (_terrainCollider != null)
         {
             _terrainCollider.enabled = false;
@@ -129,13 +127,13 @@ public class TerrainTreeSystem : MonoBehaviour
 
     private void RestoreForest()
     {
-        // Восстанавливаем деревья только если данные гарантированно принадлежат этому объекту
         if (_isInitialized && _terrainData != null && _savedOriginalTrees != null)
         {
             _terrainData.treeInstances = _savedOriginalTrees;
         }
     }
 
+    // Восстанавливаем деревья РОВНО в момент уничтожения сцены
     private void OnDisable() => RestoreForest();
     private void OnDestroy() => RestoreForest();
     private void OnApplicationQuit() => RestoreForest();

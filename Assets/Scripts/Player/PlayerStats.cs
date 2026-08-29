@@ -48,7 +48,7 @@ public class PlayerStats : MonoBehaviour
 
     private Canvas _UI;
     private GameObject _shopUI;
-
+    [SerializeField]private GameObject _pauseUI;
     private bool _isHolding = false;
     private float _currentHoldTime = 0f;
     private CampFire _targetCampFire;
@@ -56,7 +56,7 @@ public class PlayerStats : MonoBehaviour
     private Tent _targetTent;
     [SerializeField] private TerrainTreeSystem _treeSystem;
     private bool _isDay => SceneManager.GetActiveScene().name == "Day";
-
+    //private bool _isPause = false;
     private void Awake()
     {
         if (_audioSource == null)
@@ -102,6 +102,16 @@ public class PlayerStats : MonoBehaviour
                 {
                     _shopUI.SetActive(false);
                 }
+            }
+        }
+        if(_pauseUI == null && _UI != null)
+        {
+            Transform pause = _UI.transform.Find("Pause");
+            if(pause != null)
+                _pauseUI = pause.gameObject;
+            if(_pauseUI.activeSelf)
+            {
+                _pauseUI.SetActive(false);
             }
         }
 
@@ -493,6 +503,35 @@ public class PlayerStats : MonoBehaviour
         return true;
     }
 
+
+    //
+
+    public void OnPause(InputValue val)
+    {
+        if(val.isPressed && _pauseUI != null && !_shopUI.activeSelf)
+        {
+            TryPause(!_pauseUI.activeSelf);
+        }
+    }
+
+    public void TryPause(bool val)
+    {
+        if(val)
+        {
+            _pauseUI.SetActive(val);
+            _camScript.LockCursor(!val);
+            Time.timeScale = 0f;
+            AudioListener.volume = 0f;
+        }
+        else
+        {
+            _pauseUI.SetActive(val);
+            _camScript.LockCursor(!val);
+            Time.timeScale = 1f;
+            AudioListener.volume = 1f;
+        }
+    }    
+    //
     public int GetLogCount() => _logCounts;
 
     public CamScript getCam() => _camScript;
