@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class TreeLogic : MonoBehaviour
 {
@@ -10,13 +9,18 @@ public class TreeLogic : MonoBehaviour
     [Header("Ground Placement Settings")]
     [SerializeField] private LayerMask _groundLayer; // Укажите слой земли/рельефа
     [SerializeField] private float _raycastDistance = 10f;
-    [SerializeField] private float _spawnYOffset = 0.2f; // Небольшой отступ вверх, чтобы бревна не проваливались сквозь землю
-    private SceneManager _sceneManager;
+    [SerializeField] private float _spawnYOffset = 0.2f; // Отступ вверх, чтобы бревна не проваливались
+
+    private bool _isDead = false; // Защита от повторного вызова Die() в один кадр
+
     public void TakeDamage(float damage)
     {
+        if (_isDead) return;
+
         _treeHealth -= damage;
         if (_treeHealth <= 0)
         {
+            _isDead = true;
             Die();
         }
     }

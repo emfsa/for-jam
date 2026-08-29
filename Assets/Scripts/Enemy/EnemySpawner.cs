@@ -6,6 +6,7 @@ public class EnemySpawner : MonoBehaviour
 {
     // Событие завершения волны
     public static event Action OnWaveCompleted;
+    public static event Action<String> OnWaveCompletedText;
 
     [Header("Prefabs")]
     [SerializeField] private GameObject[] _enemyPrefabs;
@@ -120,6 +121,7 @@ public class EnemySpawner : MonoBehaviour
         {
             Debug.Log("Волна полностью отбита!");
             OnWaveCompleted?.Invoke();
+            OnWaveCompletedText?.Invoke("Wave Completed!");
         }
     }
 

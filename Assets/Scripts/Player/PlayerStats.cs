@@ -7,6 +7,16 @@ using UnityEngine.UI;
 
 public class PlayerStats : MonoBehaviour
 {
+    public static event Action<string> OnShowInfo;
+
+    [Header("Audio")]
+    [SerializeField] private AudioSource _audioSource;
+    [SerializeField] private AudioClip[] _woodHitSounds;  // Звуки удара по дереву
+    [SerializeField] private AudioClip[] _enemyHitSounds; // Звуки удара по врагу
+    [SerializeField] private AudioClip[] _swingSounds;    // Звук замаха/промаха по воздуху
+    [SerializeField] private AudioClip[] _tentSounds;     // Звук палатки
+    [SerializeField] private AudioClip[] _pickUpSounds;   // Звук подбора / работы с дровами
+
     [Header("Logs")]
     [SerializeField] private int _logCounts = 0;
     [SerializeField] private int _maxLogCounts = 5;
@@ -26,8 +36,9 @@ public class PlayerStats : MonoBehaviour
     [Header("Attack")]
     [SerializeField] private float _attackDamage = 10f;
     [SerializeField] private float _attackDistance = 3f;
-    [SerializeField] private float _attackCooldown = 0.5f; // Задержка между ударами (подгоните под длину анимации)
+    [SerializeField] private float _attackCooldown = 0.5f;
     [SerializeField] private Animator _handAnimator;
+    private string[] _animationsName = { "heroL|axeAtack", "heroL|axeChop" };
 
     private float _lastAttackTime;
 
@@ -43,9 +54,16 @@ public class PlayerStats : MonoBehaviour
     private CampFire _targetCampFire;
     private LogStorage _targetLogStorage;
     private Tent _targetTent;
+    [SerializeField] private TerrainTreeSystem _treeSystem;
     private bool _isDay => SceneManager.GetActiveScene().name == "Day";
+
     private void Awake()
     {
+        if (_audioSource == null)
+        {
+            _audioSource = GetComponent<AudioSource>();
+        }
+
         if (_camScript == null)
         {
             _camScript = GetComponentInChildren<CamScript>();
@@ -86,13 +104,18 @@ public class PlayerStats : MonoBehaviour
                 }
             }
         }
-        if(_handAnimator == null)
+
+        if (_handAnimator == null)
         {
             _handAnimator = GetComponentInChildren<Animator>();
             if (_handAnimator == null)
             {
                 Debug.Log("HandAnimatorNULL {PlayerStats}");
             }
+        }
+        if (_treeSystem == null)
+        {
+            _treeSystem = FindAnyObjectByType<TerrainTreeSystem>();
         }
         ApplySavedProgress();
         ResetProgressBar();
@@ -106,14 +129,9 @@ public class PlayerStats : MonoBehaviour
     {
         if (GameData.Instance == null) return;
 
-        // 1. Восстанавливаем ресурсы
         _money = GameData.Instance.money;
         _logCounts = GameData.Instance.logInventory;
-
-        // 2. Рассчитываем урон: Базовый (10) + (Уровень * Бонус за уровень (5))
         _attackDamage = 10f + (GameData.Instance.damageLevel * 5f);
-
-        // 3. Рассчитываем вместимость: Базовая (5) + (Уровень * Бонус за уровень (1))
         _maxLogCounts = 5 + (GameData.Instance.logLevel * 1);
     }
 
@@ -131,16 +149,20 @@ public class PlayerStats : MonoBehaviour
 
     public bool TryUseLog()
     {
-        if (_logCounts > 0 && !_targetCampFire._isDay)
+        if (_isDay) return false;
+
+        if (_logCounts > 0)
         {
             _logCounts--;
             UpdateUI();
             return true;
         }
+
+        OnShowInfo?.Invoke("Inventory is empty!");
         return false;
     }
 
-    public void OnAttack(InputValue val)
+    /*public void OnAttack(InputValue val)
     {
         if (!val.isPressed || _camScript == null) return;
 
@@ -148,7 +170,7 @@ public class PlayerStats : MonoBehaviour
 
         _lastAttackTime = Time.time;
 
-        playAttackAnim();
+        playAttackAnim(1);
 
         Ray ray = _camScript.GetCenterRay();
 
@@ -158,19 +180,85 @@ public class PlayerStats : MonoBehaviour
             {
                 case var c when c.TryGetComponent(out Enemy enemy):
                     enemy.TakeDamage(_attackDamage, this);
+                    PlayRandomSound(_enemyHitSounds);
                     break;
 
                 case var c when c.TryGetComponent(out TreeLogic tree):
                     tree.TakeDamage(_attackDamage);
+                    PlayRandomSound(_woodHitSounds);
+                    break;
+
+                default:
+                    PlayRandomSound(_swingSounds);
                     break;
             }
         }
+        else
+        {
+            PlayRandomSound(_swingSounds);
+        }
+    }*/
+    public void OnAttack(InputValue val)
+    {
+        if (!val.isPressed || _camScript == null) return;
+
+        if (Time.time < _lastAttackTime + _attackCooldown) return;
+
+        _lastAttackTime = Time.time;
+
+        playAttackAnim(1);
+
+        Ray ray = _camScript.GetCenterRay();
+
+        if (Physics.Raycast(ray, out RaycastHit hit, _attackDistance, _interactionLayerMask))
+        {
+            // 1. Попадание по уже заспавненному интерактивному дереву
+            if (hit.collider.TryGetComponent(out TreeLogic tree) || hit.collider.GetComponentInParent<TreeLogic>() != null)
+            {
+                var targetTree = tree != null ? tree : hit.collider.GetComponentInParent<TreeLogic>();
+                targetTree.TakeDamage(_attackDamage);
+                PlayRandomSound(_woodHitSounds);
+            }
+            // 2. Попадание по врагу
+            else if (hit.collider.TryGetComponent(out Enemy enemy) || hit.collider.GetComponentInParent<Enemy>() != null)
+            {
+                var targetEnemy = enemy != null ? enemy : hit.collider.GetComponentInParent<Enemy>();
+                targetEnemy.TakeDamage(_attackDamage, this);
+                PlayRandomSound(_enemyHitSounds);
+            }
+            // 3. Попадание по самому террейну (первый удар по дереву из TerrainData)
+            else if (_treeSystem != null && _treeSystem.TryReplaceTerrainTree(hit.point, _attackDamage))
+            {
+                PlayRandomSound(_woodHitSounds); // Дерево успешно нашлось и заменилось — воспроизводим звук дерева!
+            }
+            else
+            {
+                PlayRandomSound(_swingSounds);
+            }
+        }
+        else
+        {
+            PlayRandomSound(_swingSounds);
+        }
     }
-    private void playAttackAnim()
+
+    private void PlayRandomSound(AudioClip[] clips)
+    {
+        if (clips == null || clips.Length == 0 || _audioSource == null) return;
+
+        int randomIndex = UnityEngine.Random.Range(0, clips.Length);
+        if (clips[randomIndex] != null)
+        {
+            _audioSource.PlayOneShot(clips[randomIndex]);
+        }
+    }
+
+    private void playAttackAnim(int index)
     {
         if (_handAnimator == null) return;
-        _handAnimator.Play("heroL|axeAtack", -1, 0f);
+        _handAnimator.Play(_animationsName[index - 1], -1, 0f);
     }
+
     public void OnTakeItem(InputValue val)
     {
         if (!val.isPressed || _camScript == null) return;
@@ -179,16 +267,27 @@ public class PlayerStats : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit, _interactionDistance, _interactionLayerMask))
         {
+            bool isLog = hit.collider.GetComponent<Log>() != null;
+            bool isStorage = hit.collider.GetComponent<LogStorage>() != null;
+
+            if ((isLog || isStorage) && IsMaxLogs)
+            {
+                OnShowInfo?.Invoke("Logs inventory is full!");
+                return;
+            }
+
             switch (hit.collider)
             {
-                case var c when c.TryGetComponent(out Log log) && !IsMaxLogs:
+                case var c when c.TryGetComponent(out Log log):
                     log.pickUP(this);
+                    PlayRandomSound(_pickUpSounds);
                     break;
 
-                case var c when c.TryGetComponent(out LogStorage logStorage) && !IsMaxLogs && !_isHolding:
+                case var c when c.TryGetComponent(out LogStorage logStorage) && !_isHolding:
                     if (logStorage.TryRemoveLog())
                     {
                         AddLogs(1);
+                        PlayRandomSound(_pickUpSounds);
                     }
                     break;
             }
@@ -211,19 +310,21 @@ public class PlayerStats : MonoBehaviour
         {
             switch (hit.collider)
             {
-                case var c when c.TryGetComponent(out CampFire campFire) && _logCounts > 0:
+                case var c when c.TryGetComponent(out CampFire campFire):
                     _targetCampFire = campFire;
                     StartHolding();
                     break;
 
-                case var c when c.TryGetComponent(out LogStorage logStorage) && _logCounts > 0 && !logStorage.IsFull:
+                case var c when c.TryGetComponent(out LogStorage logStorage):
                     _targetLogStorage = logStorage;
                     StartHolding();
                     break;
-                case var c when c.TryGetComponent(out Tent tent): 
+
+                case var c when c.TryGetComponent(out Tent tent):
                     _targetTent = tent;
                     StartHolding();
                     break;
+
                 default:
                     CancelHold();
                     break;
@@ -238,7 +339,7 @@ public class PlayerStats : MonoBehaviour
         Ray ray = _camScript.GetCenterRay();
         bool isLookingAtTarget = Physics.Raycast(ray, out RaycastHit hit, _interactionDistance, _interactionLayerMask) &&
             ((_targetCampFire != null && hit.collider.GetComponent<CampFire>() == _targetCampFire) ||
-             (_targetLogStorage != null && hit.collider.GetComponent<LogStorage>() == _targetLogStorage)||
+             (_targetLogStorage != null && hit.collider.GetComponent<LogStorage>() == _targetLogStorage) ||
              (_targetTent != null && hit.collider.GetComponent<Tent>() == _targetTent));
 
         if (!isLookingAtTarget)
@@ -254,30 +355,63 @@ public class PlayerStats : MonoBehaviour
 
         if (_currentHoldTime >= _holdDuration)
         {
-            if (_targetCampFire != null && TryUseLog())
+            if (_targetCampFire != null)
             {
-                _targetCampFire.AddFireTime();
+                if (_logCounts <= 0 && !_isDay)
+                {
+                    OnShowInfo?.Invoke("Inventory is empty!");
+                }
+                else if (TryUseLog())
+                {
+                    _targetCampFire.AddFireTime();
+                    PlayRandomSound(_pickUpSounds);
+                }
             }
             else if (_targetLogStorage != null)
             {
-                while (_logCounts > 0 && !_targetLogStorage.IsFull)
+                if (_logCounts <= 0)
                 {
-                    if (_targetLogStorage.TryAddLog())
-                    {
-                        _logCounts--;
-                    }
-                    else
-                    {
-                        break;
-                    }
+                    OnShowInfo?.Invoke("Inventory is empty!");
                 }
-                UpdateUI();
+                else if (_targetLogStorage.IsFull)
+                {
+                    OnShowInfo?.Invoke("Storage is full!");
+                }
+                else
+                {
+                    bool addedAny = false;
+                    while (_logCounts > 0 && !_targetLogStorage.IsFull)
+                    {
+                        if (_targetLogStorage.TryAddLog())
+                        {
+                            _logCounts--;
+                            addedAny = true;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    if (addedAny)
+                    {
+                        PlayRandomSound(_pickUpSounds);
+                    }
+
+                    if (_targetLogStorage.IsFull && _logCounts > 0)
+                    {
+                        OnShowInfo?.Invoke("Storage is full!");
+                    }
+
+                    UpdateUI();
+                }
             }
             else if (_targetTent != null)
             {
-                if (_isDay) 
-                { 
-                    _targetTent.OpenShop(_shopUI, _camScript); 
+                PlayRandomSound(_tentSounds);
+                if (_isDay)
+                {
+                    _targetTent.OpenShop(_shopUI, _camScript);
                 }
                 else
                 {
@@ -285,8 +419,7 @@ public class PlayerStats : MonoBehaviour
                 }
             }
 
-
-                CancelHold();
+            CancelHold();
         }
     }
 
@@ -305,6 +438,7 @@ public class PlayerStats : MonoBehaviour
         _currentHoldTime = 0f;
         _targetCampFire = null;
         _targetLogStorage = null;
+        _targetTent = null;
         ResetProgressBar();
     }
 
@@ -342,7 +476,6 @@ public class PlayerStats : MonoBehaviour
 
     public float GetAttackDamage() => _attackDamage;
     public int GetMaxLogCount() => _maxLogCounts;
-
     public int GetMoney() => _money;
 
     public void AddMoney(int amount)
@@ -362,8 +495,5 @@ public class PlayerStats : MonoBehaviour
 
     public int GetLogCount() => _logCounts;
 
-    public CamScript getCam()
-    {
-        return _camScript;
-    }
+    public CamScript getCam() => _camScript;
 }

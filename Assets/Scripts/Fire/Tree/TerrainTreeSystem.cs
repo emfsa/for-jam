@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class TerrainTreeSystem : MonoBehaviour
@@ -10,15 +9,12 @@ public class TerrainTreeSystem : MonoBehaviour
     [SerializeField] private GameObject _interactiveTreePrefab;
     [SerializeField] private LayerMask _terrainLayer;
 
-    [Header("Chop Settings")]
-    [SerializeField] private float _chopRange = 4f;
-    [SerializeField] private float _damagePerHit = 10f;
-
     private TerrainData _terrainData;
     private TerrainCollider _terrainCollider;
 
-    // Делаем массив статическим, чтобы он хранил САМОЕ ПЕРВОЕ состояние деревьев
-    private static TreeInstance[] _savedOriginalTrees;
+    // СТРОГО без static! Свой массив бэкапа для каждой сцены
+    private TreeInstance[] _savedOriginalTrees;
+    private bool _isInitialized = false;
 
     private void Awake()
     {
@@ -27,86 +23,67 @@ public class TerrainTreeSystem : MonoBehaviour
 
     private void InitializeAndBackup()
     {
-        if (_terrain == null) _terrain = Terrain.activeTerrain;
+        if (_isInitialized) return;
 
-        if (_terrain != null)
+        if (_terrain == null) _terrain = GetComponent<Terrain>() ?? Terrain.activeTerrain;
+
+        if (_terrain != null && _terrain.terrainData != null)
         {
             _terrainData = _terrain.terrainData;
             _terrainCollider = _terrain.GetComponent<TerrainCollider>();
 
-            // Бекапим массив ТОЛЬКО один раз при первом запуске игры
-            if (_savedOriginalTrees == null && _terrainData != null)
-            {
-                _savedOriginalTrees = (TreeInstance[])_terrainData.treeInstances.Clone();
-            }
+            // Клонируем исходный массив деревьев ТОЛЬКО один раз при загрузке этой сцены
+            _savedOriginalTrees = (TreeInstance[])_terrainData.treeInstances.Clone();
+            _isInitialized = true;
         }
     }
 
-    private void Update()
+    public bool TryReplaceTerrainTree(Vector3 hitPoint, float damage)
     {
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            TryHitTree();
-        }
-    }
+        if (SceneManager.GetActiveScene().name == "Night") return false;
 
-    private void TryHitTree()
-    {
-        if (SceneManager.GetActiveScene().name == "Night") return;
-
-        if (!_terrain || _terrainData == null)
+        if (!_isInitialized || _terrainData == null)
         {
             InitializeAndBackup();
         }
 
-        if (Camera.main == null || _terrain == null) return;
+        if (_terrain == null || _terrainData == null) return false;
 
-        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        Vector3 tempCoord = hitPoint - _terrain.transform.position;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, _chopRange))
+        int closestTreeIndex = -1;
+        float minDistance = float.MaxValue;
+
+        for (int i = 0; i < _terrainData.treeInstanceCount; i++)
         {
-            if (hit.collider.TryGetComponent<TreeLogic>(out var treeLogic))
+            TreeInstance tree = _terrainData.GetTreeInstance(i);
+
+            Vector3 treeWorldXZ = new Vector3(
+                tree.position.x * _terrainData.size.x,
+                0f,
+                tree.position.z * _terrainData.size.z
+            );
+
+            Vector3 tempCoordXZ = new Vector3(tempCoord.x, 0f, tempCoord.z);
+            float distance = Vector3.Distance(treeWorldXZ, tempCoordXZ);
+
+            if (distance < minDistance && distance < 3.5f)
             {
-                treeLogic.TakeDamage(_damagePerHit);
-                return;
-            }
-
-            if (((1 << hit.collider.gameObject.layer) & _terrainLayer) != 0)
-            {
-                Vector3 tempCoord = hit.point - _terrain.transform.position;
-
-                int closestTreeIndex = -1;
-                float minDistance = float.MaxValue;
-
-                for (int i = 0; i < _terrainData.treeInstanceCount; i++)
-                {
-                    TreeInstance tree = _terrainData.GetTreeInstance(i);
-
-                    Vector3 treeWorldXZ = new Vector3(
-                        tree.position.x * _terrainData.size.x,
-                        0f,
-                        tree.position.z * _terrainData.size.z
-                    );
-
-                    Vector3 tempCoordXZ = new Vector3(tempCoord.x, 0f, tempCoord.z);
-                    float distance = Vector3.Distance(treeWorldXZ, tempCoordXZ);
-
-                    if (distance < minDistance && distance < 2.5f)
-                    {
-                        minDistance = distance;
-                        closestTreeIndex = i;
-                    }
-                }
-
-                if (closestTreeIndex != -1)
-                {
-                    ReplaceTreeAndDamage(closestTreeIndex);
-                }
+                minDistance = distance;
+                closestTreeIndex = i;
             }
         }
+
+        if (closestTreeIndex != -1)
+        {
+            ReplaceTreeAndDamage(closestTreeIndex, damage);
+            return true;
+        }
+
+        return false;
     }
 
-    private void ReplaceTreeAndDamage(int index)
+    private void ReplaceTreeAndDamage(int index, float damage)
     {
         TreeInstance tree = _terrainData.GetTreeInstance(index);
         Vector3 worldPos = GetTreeWorldPosition(tree);
@@ -114,11 +91,12 @@ public class TerrainTreeSystem : MonoBehaviour
         float treeAngleDegrees = tree.rotation * Mathf.Rad2Deg;
         Quaternion finalRotation = Quaternion.Euler(0f, treeAngleDegrees, 0f);
 
+        // Удаляем дерево только в Runtime-копии массива
         List<TreeInstance> treeList = new List<TreeInstance>(_terrainData.treeInstances);
         treeList.RemoveAt(index);
         _terrainData.treeInstances = treeList.ToArray();
-        _terrain.Flush();
 
+        // Обновляем коллайдер террейна без вызова Flush(), чтобы не пачкать файл ассета
         if (_terrainCollider != null)
         {
             _terrainCollider.enabled = false;
@@ -136,7 +114,7 @@ public class TerrainTreeSystem : MonoBehaviour
 
         if (spawnedTree.TryGetComponent<TreeLogic>(out var treeLogic))
         {
-            treeLogic.TakeDamage(_damagePerHit);
+            treeLogic.TakeDamage(damage);
         }
     }
 
@@ -149,31 +127,16 @@ public class TerrainTreeSystem : MonoBehaviour
         return new Vector3(worldX, worldY, worldZ);
     }
 
-    // Восстанавливаем деревья при выходе из Play Mode или уничтожении
     private void RestoreForest()
     {
-        if (_terrainData != null && _savedOriginalTrees != null)
+        // Восстанавливаем деревья только если данные гарантированно принадлежат этому объекту
+        if (_isInitialized && _terrainData != null && _savedOriginalTrees != null)
         {
             _terrainData.treeInstances = _savedOriginalTrees;
-            if (_terrain != null)
-            {
-                _terrain.Flush();
-            }
         }
     }
 
-    private void OnDisable()
-    {
-        RestoreForest();
-    }
-
-    private void OnDestroy()
-    {
-        RestoreForest();
-    }
-
-    private void OnApplicationQuit()
-    {
-        RestoreForest();
-    }
+    private void OnDisable() => RestoreForest();
+    private void OnDestroy() => RestoreForest();
+    private void OnApplicationQuit() => RestoreForest();
 }
